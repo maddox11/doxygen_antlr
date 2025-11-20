@@ -1,0 +1,19 @@
+#!/bin/bash
+echo "building Parser...."
+javacc pre.jj
+#javacc MacroParser.jj
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

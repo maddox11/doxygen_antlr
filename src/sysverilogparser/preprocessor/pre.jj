@@ -1,0 +1,329 @@
+/******************************************************************************
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation under the terms of the GNU General Public License is hereby
+ * granted. No representations are made about the suitability of this software
+ * for any purpose.     It is provided "as is" without express or implied warranty.
+ * See the GNU General Public License for more details.
+ *
+ */
+options {
+  STATIC=false;
+  OUTPUT_LANGUAGE = "c++";
+  NAMESPACE = "prepc";
+  TOKEN_MANAGER_SUPER_CLASS = "PreTokenParser";
+  TOKEN_MANAGER_INCLUDE="PreTokenParser.h";
+  PARSER_INCLUDE="PrepParser.h";
+ // DEBUG_PARSER=true;
+ // DEBUG_TOKEN_MANAGER=true;
+ //DEBUG_LOOKAHEAD=true;
+ // OUTPUT_DIRECTORY = ".";
+  }
+
+PARSER_BEGIN(VerilogPreProcessor)
+
+  PrepParser *m_outlineParser;
+  bool bParse=false;
+  void setOutlineParser(PrepParser* p)
+   {
+     m_outlineParser=p;
+   }
+  
+  PrepParser *outlineParser() const
+  {
+    return m_outlineParser;
+  }
+
+  std::string checkTok()
+  {
+      Token *tok=getToken(-1);
+               return tok->image;
+  }
+
+  bool checkMacroDef(Token* t)
+  {
+      Token *tok=getToken(1);
+      int i=t->beginColumn+t->image.length();
+      int j=tok->beginColumn;
+      // `macro_name () with space
+      if(tok->kind==prepc::LP && i!=j)
+      {
+              std::cout<<"\ncheck tok :"<<t->image<<" | "<<tok->image<<"\n"; 
+              std::cout<<"\ncheck tok :"<<i<<" | "<<j<<"\n\n"; 
+             
+              return true;
+      }
+      return false;
+  }
+
+
+  bool checkTok(Token* t)
+  {  
+      Token *tok=getToken(1);
+    //  std::cout<<"check tok :"<<t->image<<" | "<<tok->image<<"\n"; 
+   
+      if(tok->kind==prepc::STRING)
+      {
+              return true;
+      }
+      return false;
+  }
+
+  void checkMacro(Token *tok)
+  {
+        outlineParser()->sbb.append(")");
+        tok->image=outlineParser()->sbb;
+        tok->endLine=tok->beginLine+outlineParser()->countChar(outlineParser()->sbb,'\n');
+         
+        if(!outlineParser()->pMM && !outlineParser()->parserOn)
+        {
+                 tok->image=outlineParser()->sbb;
+                 outlineParser()->evalMacro(tok->image,true,tok->beginLine);
+                 tok->image="";
+        }
+  }
+
+PARSER_END(VerilogPreProcessor)
+
+
+TOKEN:
+{
+      <EQU : "=">
+    | <COMMA : ",">
+    | <LP : "(">
+    | <RP : ")">
+    | <TIC : "`">
+    | <DQ : "\"">
+    | <COM:   <DQ>((~["\n","\r","\"","\\"])|<STRING_ESCAPE>)* <DQ>   >
+    | <STRING : ((<LETTER>|"_"|"$")(<LETTER_OR_DIGIT> | "_"| "$")*) >
+    | <QSTRING: <TIC><TIC><STRING><TIC><TIC> >
+    | <QSTRING2: <TIC><TIC><STRING> >
+    | <QSTRING3: <TIC><STRING>>
+    | <DIGIT : (["0"-"9"])+>
+    | <#STRING_ESCAPE: "\\" ( ["n","t","b","r","f", "s", "\\","'","\""]
+         | ["0"-"7"] ( ["0"-"7"] )?
+          | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+          )>
+    | < #LETTER_OR_DIGIT: ( <LETTER> | <DIGIT> ) >
+    | <#LETTER: (<LOWER_CASE_LETTER> | <UPPER_CASE_LETTER>) >
+    | <#LOWER_CASE_LETTER: (["a"-"z"]) >
+    | <#UPPER_CASE_LETTER: (["A"-"Z"]) >
+    | <ALL:  ["\u0021","\u0023"-"\u0027","\u002a"-"\u002b", "\u002d"-"\u002f","\u003a"-"\u003c","\u003e"-"\u0040","\u005b"-"\u0060","\u007b"-"\u00ff"] >
+    | <DEFF: (("`")(["a"-"z","A"-"Z","0"-"9","_","$"])+)(" "|"\t"|"\n")*<LP>>
+    | <#T_TIMESCALE: "`timescale"  >
+    | <#T_CELLDEF: "`celldefine"  >
+    | <#T_ENDCELL: "`endcelldefine" >
+    | <#T_LINE: "`line" >
+    | <#T_BEGINKEY: "`begin_keywords" >
+    | <#T_ENDKEY: "`end_keywords" >
+    | <#T_UNCONN: "`unconnected_drive" >
+    | <#T_NOUNCON: "`nounconnected_drive" >
+    | <#T_PRAGMA: "`pragma" >
+    | <#T_ACCEL: "`accelerate" >
+    | <#T_NOACC: "`noaccelerate" >
+    | <#T_USELIB: "`uselib" >
+    | <#T_DEFNET: "`default_nettype" >
+    | <#T_DEFDEC: "`default_decay_time" >
+    | <#T_DEFTRI: "`default_trireg_strength">
+    | <#T_DELMOD: "`delay_mode_path" >
+    | <#T_DELMODDIS: "`delay_mode_distributed" >
+    | <#T_DELMODUNIT: "`delay_mode_unit" >
+    | <#T_DELMODZERO: "`delay_mode_zero" >
+    | <#T_PROT: "`protect" >
+    | <#T_DISPORT: "`disable_portfaults" >
+    | <#T_ENPORT: "`enable_portfaults">
+    | <#T_NOSUPP: "`nosuppress_faults" >
+    | <#T_ENDPROT: "`endprotect" >
+    | <#T_ENDPROTED: "`endprotected">
+    | <#T_EXP: "`expand_vectornets" >
+    | <#T_NOEXP: "`noexpand_vectornets" >
+    | <#T_PROTECTE: "`protected" >
+    | <#T_AUTO: "`autoexpand_vectornets" >
+    | <#T_REMGATE: "`remove_gatename" >
+    | <#T_NONET: "`noremove_netnames" >
+    | <#T_RENET: "`remove_netname" >
+    | <#T_SIG: "`signed" >
+    | <#T_UNSIG: "`unsigned" >
+    | <#T_ERROR: "`error" >
+}
+
+SKIP:
+{
+
+   "\n" {
+           Token *t=jjFillToken();
+           if(!parser->bParse)
+           parser->outlineParser()->appString(t);
+           parser->outlineParser()->sbb.append("\n");
+           delete t;
+      }
+| "\r" {parser->outlineParser()->appString("\r");parser->outlineParser()->sbb.append("\r");}
+
+| "\t"  {
+           if(!parser->bParse)
+           parser->outlineParser()->appString("\t");
+           parser->outlineParser()->sbb.append("\t");
+          }
+
+| " "   {
+          if(!parser->bParse)
+          parser->outlineParser()->appString(" ");
+          parser->outlineParser()->appStringSkip(" ");
+         }
+| <ONE_LINE_COMMENT: ("//" (~["\n", "\r"])* ("\n" | "\r" | "\r\n")? )> { Token *t=jjFillToken();parser->outlineParser()->parseComment(t);delete t; }
+| <BLOCK_COMMENT: "/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/"> {parser->outlineParser()->parseComment(jjFillToken()); }
+| <(["\t"," "])*"`ifdef" (["\t"," "])+ <STRING>> { parser->outlineParser()->ifdef(jjFillToken()); }
+| <(["\t"," "])*"`ifndef" (["\t"," "])+ <STRING>>  { parser->outlineParser()->ifndef(jjFillToken());}
+| <(["\t"," "])*"`undef" (["\t"," "])+ <STRING>>   { parser->outlineParser()->undef(jjFillToken());}
+| <(["\t"," "])*"`elsif" (["\t"," "])+ <STRING>>   {parser->outlineParser()->elsif(jjFillToken()); }
+| <(["\t"," "])*"`else" >     {parser->outlineParser()->_else(jjFillToken());}
+| <(["\t"," "])*"`endif" >   {parser->outlineParser()->endif(jjFillToken());}
+| <(["\t"," "])*"`include" (~["\n"])* "\n" > {parser->outlineParser()->include(jjFillToken());}
+| <(["\t"," "])*"`define" (~["\n"])* "\n" >  {parser->outlineParser()->define(jjFillToken());}
+| <(["\t"," "])*(<T_TIMESCALE>|<T_ERROR>|<T_PROT>|<T_CELLDEF>|<T_ENDCELL>|<T_LINE>|<T_PRAGMA>|<T_LINE>| <T_BEGINKEY>| <T_ENDKEY>|<T_NOUNCON>|<T_PRAGMA>|<T_ACCEL>|<T_NOACC>|<T_USELIB>|<T_DEFNET>|<T_DEFDEC>|<T_DEFTRI>|<T_DELMOD>|<T_DELMODDIS>|<T_DELMODUNIT>|<T_DELMODZERO>|<T_DISPORT>|<T_ENPORT>|<T_NOSUPP>|<T_ENDPROT>|<T_ENDPROTED>|<T_EXP>|<T_NOEXP>|<T_PROTECTE>|<T_AUTO>|<T_REMGATE>|<T_NONET>|<T_RENET>|<T_SIG>|<T_UNSIG>|<T_BEGINKEY>|<T_ENDKEY>) (~["\n"])* "\n" >{Token *t=jjFillToken();parser->outlineParser()->appSysMacros(t); }
+| <(["\t"," "])* ("`define")(["\t"," "])*((["a"-"z","A"-"Z","0"-"9","_","$"])+ (~["\n", "\r"])+ ["\\"]["\n"] ((~["\n","\r"])* ["\\"]["\n"])*(~["\n","\r"])* ) >
+ {
+     parser->outlineParser()->macro(jjFillToken(),false);
+ }
+}
+
+void source_text(): {Token *tok;}
+{
+	(tok=item_filter() { outlineParser()->appString0(tok,false);} )* <EOF>
+}
+
+
+bool parse_macro( DefMacro *df): {Token *tok;}
+{
+	   tok=<STRING>
+      {
+         df->mName=tok->image;
+         if(checkMacroDef(tok))
+             return true;       
+      } ( LOOKAHEAD(2) {} <LP>  [ list_of_items(df) ] <RP> )? (tok=item_filter(){outlineParser()->appString(tok->image);})*{return false;}
+}
+
+void list_of_items(DefMacro *df): {}
+{
+  item(df)  ( <COMMA> item(df) )* {  }
+}
+
+std::string list_of_params(): {Token *t;std::string s;}
+{
+  t=<STRING> {s=t->image;} ( <COMMA> t= <STRING>{s+=',';s+=t->image;} )* { return s;}
+}
+
+void item(DefMacro *df): {Token *t,*t1;std::string s="";std::string s1;}
+{
+  LOOKAHEAD(5)  t=<STRING> <LP>  s1=list_of_params() <RP>{ df->li.emplace_back(s+s1); }
+  |
+   LOOKAHEAD(2)  t=<STRING> <EQU>  [s=equ_item()] 
+   {
+    if(s.empty())
+      s.append("=");
+    df->li.emplace_back(t->image);
+    std::pair<std::string,std::string> p(t->image,s);
+    df->hm.insert(p);
+    }
+  |
+  t1=<STRING> 
+   {
+    df->li.emplace_back(t1->image);
+    }
+}
+
+std::string equ_item(): {Token *t=null;Token *ts=null;std::string s1="";std::string s2="";}
+{
+     LOOKAHEAD(5)  [t=<STRING>] <LP> (ts=<COM>{s2.append(ts->image);}|ts=<ALL>{s2.append(ts->image);}|ts=<DIGIT>{s2.append(ts->image);}|ts=<STRING>{s2.append(ts->image);}|ts=<COMMA>{s2.append(ts->image);} |ts=<EQU>{s2.append(ts->image);}|ts=<QSTRING3>{s2.append(ts->image);})* <RP> 
+     { 
+      std::string res;
+      if(t)
+        res=t->image;
+
+      res.append("(");
+      res.append(s2);
+      res.append(")");
+      return res;
+    }
+  
+   |LOOKAHEAD(3)  t=<DEFF>  (ts=<COM>{s2.append(ts->image);}|ts=<ALL>{s2.append(ts->image);}|ts=<DIGIT>{s2.append(ts->image);}|ts=<STRING>{s2.append(ts->image);}|ts=<COMMA>{s2.append(ts->image);} |ts=<EQU>{s2.append(ts->image);}|ts=<QSTRING3>{s2.append(ts->image);})+ <RP> 
+     { 
+      std::string res=t->image;
+      res.append("(");
+      res.append(s2);
+      res.append(")");
+      return res;
+    }
+
+
+   | LOOKAHEAD(2)  <LP> <RP> { return "()";}
+ 
+   | (
+       t=<DIGIT> {s1.append(t->image);}
+      |t=<ALL>    {s1.append(t->image);}
+      |t=<STRING>   {s1.append(t->image);}
+      |t=<COM>      {s1.append(t->image);}
+      )+  { return s1;}
+
+   | t=<QSTRING3> { return t->image;}
+
+}
+
+
+Token* item_filter(): {Token *tok;std::string s="";std::string s1="";Token* t=null;std::string vv;}
+{
+  tok=<STRING>     { return tok;}
+  | tok=<DIGIT>     { return tok;}
+  | tok=<EQU>        {  return tok;}
+  | tok=<ALL>      {  return tok;}
+  | tok=<COMMA>        {  return tok;}
+  | tok=<LP>        {  return tok;}
+  | tok=<RP>       { return tok;}
+  | LOOKAHEAD(2) tok=<COM> {  return tok;}
+  | LOOKAHEAD(5) tok=<QSTRING>  { return tok;}
+  | LOOKAHEAD(3) tok=<QSTRING2>  { return tok;}
+  | LOOKAHEAD(4) tok=<QSTRING3> // [LOOKAHEAD(2) t=<COM>]
+   {
+     bool b=outlineParser()->checkQ3(tok);
+     if(b){tok->image=""; return tok;}
+
+     if(!outlineParser()->pMM && !outlineParser()->parserOn){
+         outlineParser()->evalMacro(tok->image,true,tok->beginLine);
+         tok->image="";
+     }
+     return tok;
+     }
+  | {bParse=true;outlineParser()->sbb.resize(0);} tok=<DEFF> { outlineParser()->appStringSkip(tok);} (LOOKAHEAD(3)macro_extension() )* t=")"
+  {
+     bParse=false;
+      checkMacro(tok);
+      return tok;
+     }
+  | LOOKAHEAD(2) tok=<TIC><DQ>   { tok->image="`\""; return tok;}
+  | tok=<TIC> {return tok;}
+  | tok=<DQ> {return tok;}
+
+}
+
+void macro_extension(): {Token *t=null;std::string s="";}
+{
+   (t=<COM>|t=<ALL>|t=<DIGIT>|t=<COMMA>  | t=<EQU> | t=<DQ>){outlineParser()->appStringSkip(t); }
+  | t=<STRING>
+              { 
+                   outlineParser()->appStringSkip(t); 
+                if(checkTok(t))
+                   outlineParser()->appStringSkip(" "); 
+           
+              }
+  | LOOKAHEAD(2) t=<QSTRING3> { outlineParser()->appStringSkip(t); }
+  | LOOKAHEAD(5) t=<QSTRING> { outlineParser()->appStringSkip(t); }
+  | LOOKAHEAD(3) t=<QSTRING2> {outlineParser()->appStringSkip(t); }
+  | t=<DEFF> {outlineParser()->appStringSkip(t);}(LOOKAHEAD(4)macro_extension())* t=<RP>
+    {
+        outlineParser()->appStringSkip(t);
+    }
+  | t=<TIC> {outlineParser()->appStringSkip(t);}
+  | t="(" {;outlineParser()->appStringSkip(t); }    (macro_extension())*  t= ")"{outlineParser()->appStringSkip(t); }
+}
+
+
+
