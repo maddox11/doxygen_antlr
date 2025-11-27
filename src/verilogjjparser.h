@@ -38,6 +38,8 @@ public:
 
 	bool needsPreprocessing(const QCString &) const { return TRUE; }
 	void handleCommentBlock(const QCString &doc1, int line, bool brief);
+	void specialHandleCommentBlock(QCString &doc, int line, bool brief,Entry *ent);
+
 	const std::shared_ptr<Entry> getLastEntity();
 
 	void initEntry(Entry *e);

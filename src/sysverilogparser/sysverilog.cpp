@@ -187,13 +187,13 @@ void CodeExpression::enterEveryRule(ParserRuleContext *ctx)
 
   Token *tik = com->get(id + 1);
   size_t u = tok->getType();
-  
+
   std::string clazz, name, value;
 
   if (index == SVP::RuleModule_nonansi_header)
   {
     SVP::Module_nonansi_headerContext *mc = (SVP::Module_nonansi_headerContext *)ctx;
-     std::string cl = mc->ss()->getText();
+    std::string cl = mc->ss()->getText();
     codeParser()->addClass(cl);
   }
 
@@ -331,7 +331,6 @@ void CodeExpression::visitErrorNode(antlr4::tree::ErrorNode *node)
     return;
   TVec vec = com->getHiddenTokensToLeft(l, 2);
   printVecToOutput(vec, codeParser());
-  // size_t i = node->getSymbol()->getLine();
   codeParser()->codifyLines(s.data(), 0, false, true, false);
 }
 

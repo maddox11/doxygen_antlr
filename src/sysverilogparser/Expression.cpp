@@ -432,7 +432,7 @@ void Expression::enterPort_declaration(SVP::Port_declarationContext *ctx)
     if (in)
     {
       np = in->net_port_type();
-      dir = ". [ input ]";
+      dir = "input ";
       liof = in->list_of_port_identifiers();
       vp = in->variable_port_type();
       lcx = in->list_of_variable_identifiers();
@@ -440,7 +440,7 @@ void Expression::enterPort_declaration(SVP::Port_declarationContext *ctx)
     else if (out)
     {
       np = out->net_port_type();
-      dir = ". [ output ]";
+      dir = "output ";
       liof = out->list_of_port_identifiers();
       vp = out->variable_port_type();
       liofv = out->list_of_variable_port_identifiers();
@@ -448,7 +448,7 @@ void Expression::enterPort_declaration(SVP::Port_declarationContext *ctx)
     else if (io)
     {
       np = io->net_port_type();
-      dir = ". [ inout ]";
+      dir = "inout ";
       liof = io->list_of_port_identifiers();
     }
 

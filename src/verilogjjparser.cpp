@@ -111,7 +111,8 @@ void VerilogOutlineParser::Private::parseVerilogfile(const char *inputBuffer, bo
   PrepParser pre(ffh);
   std::string cs = pre.parseData(s);
   pre._clearAll();
-
+  std::string fii = "precomp.txt";
+  pre.writeOutput(fii, cs);
   antlr4::ANTLRInputStream input(cs.c_str());
   SysVerilogLexer lexer(&input);
 
@@ -282,7 +283,7 @@ void VerilogOutlineParser::addVerilogType(const char *n, int startLine, int endL
   // s->current->argList.setTrailingReturnType(QCString("double"));
   // s->current->args += " int a ";
   s->current->type = qual;
-  //s->current->type.append(" automatic");
+  // s->current->type.append(" automatic");
   s->current->fileName = p->yyFileName;
   s->current->spec = ts;
 
@@ -315,10 +316,17 @@ void VerilogOutlineParser::addMember(const char *n,
   s->current->section = section;
   s->current->spec = spec;
   s->current->fileName = p->yyFileName;
+
   s->current->type = type;
   s->current->args = arg;
   s->current->exception = exp;
-  // s->current->bitfields = exp;
+  if (exp)
+  {
+    s->current->type.prepend(" ");
+    s->current->type.prepend(exp);
+    s->current->exception.resize(0);
+  }
+  //   s->current->bitfields = exp;
 
   if (qual)
   {
@@ -329,6 +337,32 @@ void VerilogOutlineParser::addMember(const char *n,
   s->current->protection = Protection::Public;
   newEntry();
 }
+
+void VerilogOutlineParser::specialHandleCommentBlock(QCString &doc, int line, bool brief, Entry *ent)
+{
+  int position = 0;
+  bool needs = FALSE;
+  Protection protection = Protection::Public;
+  Markdown markdown(p->yyFileName, line);
+  QCString processedDoc = Config_getBool(MARKDOWN_SUPPORT) ? markdown.process(doc, line) : doc;
+  while (p->commentScanner.parseCommentBlock(
+      p->thisParser,
+      ent,
+      processedDoc,  // text
+      p->yyFileName, // file
+      line,          // line of block start
+      true,
+      0,
+      FALSE,
+      protection,
+      position,
+      needs,
+      Config_getBool(MARKDOWN_SUPPORT)))
+  {
+    if (needs)
+      newEntry();
+  }
+} // special handle
 
 void VerilogOutlineParser::handleCommentBlock(const QCString &doc1, int line, bool brief)
 {
@@ -351,6 +385,15 @@ void VerilogOutlineParser::handleCommentBlock(const QCString &doc1, int line, bo
 
   std::shared_ptr<Entry> ent = std::make_shared<Entry>();
 
+  std::shared_ptr<Entry> see = getLastEntry();
+  Entry *e = see.get();
+
+  if (e != nullptr && line > e->startLine)
+  {
+    p->str_doc.addDocInfo(doc1, line, brief);
+    return;
+  }
+
   p->oldEntry = s->current.get();
 
   if (brief)
@@ -361,6 +404,8 @@ void VerilogOutlineParser::handleCommentBlock(const QCString &doc1, int line, bo
   {
     ent->docLine = line;
   }
+
+  std::cout << "handle doc:\n [" << doc.data() << "] {" << line << "}\n";
 
   Markdown markdown(p->yyFileName, line);
   QCString processedDoc = Config_getBool(MARKDOWN_SUPPORT) ? markdown.process(doc, line) : doc;
@@ -390,10 +435,7 @@ void VerilogOutlineParser::handleCommentBlock(const QCString &doc1, int line, bo
     return;
   }
 
-  std::shared_ptr<Entry> see = getLastEntry();
-
-  Entry *e = see.get();
-  if (e->type == "@")
+  if (e == nullptr || e->type == "@")
   {
     p->str_doc.addDocInfo(doc1, line, brief);
     return;
@@ -540,13 +582,22 @@ void VerilogOutlineParser::insertPendingComments()
     if (!p->lineEntry.empty())
     {
       Entry *e = p->lineEntry.front().get();
-      // std::cout << "line entry " << e->name << "\n";
+
       pi->doc = filterVerilogComment(pi->doc);
+      // specialHandleCommentBlock(pi->doc,pi->iDocLine,pi->brief,e);
+      // std::cout << pi->doc << "\n";
+
       if (pi->brief)
       {
         e->brief = pi->doc;
         e->briefLine = pi->iDocLine;
       }
+      else
+      {
+        e->doc = pi->doc;
+        e->docLine = pi->iDocLine;
+      }
+
       p->lineEntry.clear();
     }
     // insertCommentAtLine(s->current_root, pi->iDocLine, pi->doc, &succ);
