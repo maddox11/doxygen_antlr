@@ -6,6 +6,7 @@
     "configurations": [
 
 
+
         
 
 
@@ -13,10 +14,10 @@
             "name": "C/C++ Runner: Debug Session",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/media/hake/99ef88a8-5ea8-451a-8fa3-cac9273879fe/Doxx/Test/bin/doxygen",
-            "args": ["/media/hake/99ef88a8-5ea8-451a-8fa3-cac9273879fe/Doxx/Test/bin/v.cfg"],
+            "program": "/media/hake/99ef88a8-5ea8-451a-8fa3-cac9273879fe/Doxx/Antlr/bin/doxygen",
+            "args": ["/media/hake/99ef88a8-5ea8-451a-8fa3-cac9273879fe/Doxx/Antlr/bin/v.cfg"],
             "stopAtEntry": false,
-            "cwd": "/media/hake/99ef88a8-5ea8-451a-8fa3-cac9273879fe/Doxx/Test/bin",
+            "cwd": "/media/hake/99ef88a8-5ea8-451a-8fa3-cac9273879fe/Doxx/Antlr/bin",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",

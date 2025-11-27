@@ -218,7 +218,7 @@ namespace prepc
    void searchDirectories();
 
    // sentinal for outline source code `ifdef .... `endif
-   const std::string OUTL = "<<!";
+   const std::string OUTL = "@@";
 
 }
 

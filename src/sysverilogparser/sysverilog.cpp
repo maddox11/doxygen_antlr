@@ -10,10 +10,8 @@
 #include "utility.h"
 #include "MacroLexer.h"
 
-
 using namespace antlr4;
 using namespace antlr4::tree;
-using namespace std;
 using SVP = SysVerilogParser;
 using TVec = std::vector<antlr4::Token *>;
 using TreeVec = std::vector<antlr4::tree::ParseTree *>;
@@ -22,14 +20,13 @@ bool inSide = false;
 size_t newT, oldT = 0;
 QCString className;
 
-void writeMacroID(int l, const char *text,VerilogCodeParser *vc)
+void writeMacroID(int l, const char *text, VerilogCodeParser *vc)
 {
   CodeExpression e;
   e.setCodeParser(vc);
   antlr4::CommonToken t(54);
-  e.writeText(nullptr,text,true);
+  e.writeText(nullptr, text, true);
 }
-
 
 void CodeExpression::writeText(antlr4::Token *tt, const char *text, bool isHidden)
 {
@@ -47,7 +44,7 @@ void CodeExpression::writeText(antlr4::Token *tt, const char *text, bool isHidde
     Token *token = v.at(j);
     // size_t u = token->getChannel();
     size_t u = token->getType();
-  
+
     std::string str = token->getText();
 
     // new line token '\n'
@@ -58,7 +55,7 @@ void CodeExpression::writeText(antlr4::Token *tt, const char *text, bool isHidde
     {
       m_Code->writeVerilogFont("preprocessor", str.c_str());
     }
-    else if (u == MacroLexer::MacroId )
+    else if (u == MacroLexer::MacroId)
     {
       m_Code->codifyMacroString(str);
     }
@@ -78,9 +75,9 @@ void CodeExpression::writeText(antlr4::Token *tt, const char *text, bool isHidde
     {
       m_Code->writeVerilogFont("keyword", str.c_str());
     }
-     else if (u == MacroLexer::Simple_identifier)
+    else if (u == MacroLexer::Simple_identifier)
     {
-     // vc->writeVerilogFont("keyword", str.c_str());
+      // vc->writeVerilogFont("keyword", str.c_str());
       QCString clScope = checkScope(tt);
       m_Code->codifyWord(str.data(), clScope);
     }
@@ -120,7 +117,6 @@ void writeSysFile(int l, const char *text, VerilogCodeParser *vc)
 
   CodeExpression e = CodeExpression(&tokens, &parser, vc->getFileName());
   e.setCodeParser(vc);
-  
 
   tree::ParseTreeWalker twalk = tree::ParseTreeWalker();
 
@@ -129,7 +125,7 @@ void writeSysFile(int l, const char *text, VerilogCodeParser *vc)
 
 std::vector<Token *> CodeExpression::getComments(Token *tok)
 {
-  return com->getHiddenTokensToLeft(tok->getTokenIndex(),2);
+  return com->getHiddenTokensToLeft(tok->getTokenIndex(), 2);
 }
 
 void CodeExpression::visitTerminal(antlr4::tree::TerminalNode *node)
@@ -148,21 +144,20 @@ void CodeExpression::visitTerminal(antlr4::tree::TerminalNode *node)
   if (l == INVALID_INDEX)
     return;
 
-  // print all hidden tokens(comments/definition/ws  etc before token)  
+  // print all hidden tokens(comments/definition/ws  etc before token)
   TVec vec = com->getHiddenTokensToLeft(l, 2);
   printVecToOutput(vec, codeParser());
   if (u == SVP::EOF)
     return;
 
   writeText(tok, s.data(), false);
-
 }
 
 QCString CodeExpression::checkScope(const antlr4::Token *t)
 {
   QCString res;
-  if(t==nullptr)
-   return "";
+  if (t == nullptr)
+    return "";
 
   int id = t->getTokenIndex();
 
@@ -192,25 +187,19 @@ void CodeExpression::enterEveryRule(ParserRuleContext *ctx)
 
   Token *tik = com->get(id + 1);
   size_t u = tok->getType();
-  // std::cout << "enter every rule:" << tok->getText() << " -- " << tik->getText() << "\n";
-  int zz = tok->getStartIndex();
-  //int val = ctx->getStop()->getStopIndex();
-  //int valq = ctx->getStop()->getTokenIndex();
-
+  
   std::string clazz, name, value;
 
   if (index == SVP::RuleModule_nonansi_header)
   {
     SVP::Module_nonansi_headerContext *mc = (SVP::Module_nonansi_headerContext *)ctx;
-   // std::cout << "module name:________" << mc->ss()->getText();
-    std::string cl = mc->ss()->getText();
+     std::string cl = mc->ss()->getText();
     codeParser()->addClass(cl);
   }
 
   if (index == SVP::RuleClass_declaration)
   {
     SVP::Class_declarationContext *mc = (SVP::Class_declarationContext *)ctx;
-    //std::cout << "enter class name:________" << mc->ss(0)->getText() << " " << tok->getLine() << "\n";
     std::string cl = mc->ss(0)->getText().data();
     codeParser()->addClass(cl);
     if (mc->class_type())
@@ -237,7 +226,7 @@ void CodeExpression::enterEveryRule(ParserRuleContext *ctx)
   if (index == SVP::RulePackage_declaration)
   {
     SVP::Package_declarationContext *mc = (SVP::Package_declarationContext *)ctx;
-   // std::cout << "enter package name:________" << mc->ss(0)->getText() << " " << tok->getLine() << "\n";
+    // std::cout << "enter package name:________" << mc->ss(0)->getText() << " " << tok->getLine() << "\n";
     std::string cl = mc->ss(0)->getText().data();
     codeParser()->addClass(cl);
   }
@@ -246,7 +235,7 @@ void CodeExpression::enterEveryRule(ParserRuleContext *ctx)
   {
     std::string su = getStructUnionName(ctx->parent);
     codeParser()->addClass(su);
-   // std::cout << "found struct union:" << su << "\n";
+    // std::cout << "found struct union:" << su << "\n";
   }
 
 } // enterEveryRule
@@ -257,26 +246,19 @@ void CodeExpression::exitEveryRule(antlr4::ParserRuleContext *ctx)
   int index = ctx->getRuleIndex();
   if (index == SVP::RuleModule_declaration)
   {
-    // assert(index==-1);
-
     SVP::Module_declarationContext *mc = (SVP::Module_declarationContext *)ctx;
-
-   // if (mc->module_nonansi_header())
-   //   std::cout << "extit module: " << mc->module_nonansi_header()->ss()->getText() << " " << tok->getLine() << "\n";
     codeParser()->removeClass();
   }
 
   if (index == SVP::RuleClass_declaration)
   {
     SVP::Class_declarationContext *mc = (SVP::Class_declarationContext *)ctx;
- //   std::cout << "exit class :" << mc->ss(0)->getText() << " " << tok->getLine() << "\n";
     codeParser()->removeClass();
   }
 
   if (index == SVP::RulePackage_declaration)
   {
     SVP::Package_declarationContext *mc = (SVP::Package_declarationContext *)ctx;
- //   std::cout << "exit package :" << mc->ss(0)->getText() << " " << tok->getLine() << "\n";
     codeParser()->removeClass();
   }
 
@@ -285,7 +267,7 @@ void CodeExpression::exitEveryRule(antlr4::ParserRuleContext *ctx)
     SVP::Data_typeContext *mc = (SVP::Data_typeContext *)ctx;
     if (mc->struct_union())
     {
-       codeParser()->removeClass();
+      codeParser()->removeClass();
     }
   }
 }
@@ -306,29 +288,28 @@ void CodeExpression::printVecToOutput(std::vector<antlr4::Token *> &v, VerilogCo
     }
     else if (u == SVP::Out_line_comment)
     {
-      prepc::replace(str,prepc::OUTL.data(),"");
+      prepc::replace(str, prepc::OUTL.data(), " ");
       code->codifyLines(str.data(), 0, true, true, false);
     }
-    else if (u == SVP::Block_comment || u == SVP::One_line_comment || u == SVP::Out_line_comment)
+    else if (u == SVP::Block_comment || u == SVP::One_line_comment)
     {
-      prepc::replace(str,prepc::OUTL.data(),"");
+      prepc::replace(str, prepc::OUTL.data(), "");
       code->codifyLines(str.data(), 0, false, true, false);
     }
     else if (u == SVP::Macro)
     {
-       writeText(tok, str.data(), true);
+      writeText(tok, str.data(), true);
     }
     else if (u == SVP::Define)
     {
       writeText(tok, str.data(), true);
-      // code->codifyLines(str.data(), 0, false, true, false);
     }
     else if (u == SVP::MacroId)
     {
       size_t k = str.length() - 6;
       std::string s = str.substr(3, k);
       writeText(tok, s.data(), true);
-     }
+    }
     else
     {
       code->writeWord(QCString(str.data()));
@@ -350,10 +331,8 @@ void CodeExpression::visitErrorNode(antlr4::tree::ErrorNode *node)
     return;
   TVec vec = com->getHiddenTokensToLeft(l, 2);
   printVecToOutput(vec, codeParser());
-  size_t i = node->getSymbol()->getLine();
- // std::cerr << "\n\n error while parsing file:" << fileName << " at line:" << i << " [" << node->getText() << "] \n";
+  // size_t i = node->getSymbol()->getLine();
   codeParser()->codifyLines(s.data(), 0, false, true, false);
-  // codeParser()->writeWord(QCString(s.data()));
 }
 
 #if 0

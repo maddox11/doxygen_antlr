@@ -626,7 +626,7 @@ class TranslatorEnglish : public Translator
         default: break;
       }
       if (isTemplate) result+=" Template";
-      result+=" Reference33";
+      result+=" Reference";
       return result;
     }
 

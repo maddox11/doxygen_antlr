@@ -12,16 +12,8 @@ struct SharedState
   std::shared_ptr<Entry> lastEntity;
   std::shared_ptr<Entry> lastCompound;
   std::shared_ptr<Entry> current;
-  std::string compSpec;
   std::string currName;
-  int levelCounter = 0;
-  std::string confName;
   std::string fileName;
-  std::string genLabels;
-  std::string lab;
-  int param_sec = 0;
-  int parse_sec = 0;
-  int currP = 0;
   std::vector<std::shared_ptr<Entry>> shvec;
   VerilogCodeParser *m_Code = 0;
   DefineList defList;
@@ -29,19 +21,20 @@ struct SharedState
 
   void updateClassEntry()
   {
-    if (shvec.empty()){
+    if (shvec.empty())
+    {
       lastEntity = NULL;
     }
-    else{
+    else
+    {
       lastEntity = shvec.back();
-   }
+    }
   }
 
   void insertClassEntry(std::shared_ptr<Entry> e)
   {
-     shvec.emplace_back(e);
+    shvec.emplace_back(e);
     updateClassEntry();
-   
   }
 
   void delClassEntry()
@@ -53,32 +46,33 @@ struct SharedState
     }
   }
 
-
   QCString getClassName()
   {
-    
+
     QCString q;
 
-    if(shvec.empty()){
+    if (shvec.empty())
+    {
       return q;
     }
 
-    if(shvec.size()==1)  {
-     return shvec.at(0)->name;
+    if (shvec.size() == 1)
+    {
+      return shvec.at(0)->name;
     }
 
-    if(shvec.size()==2)  
-     return shvec.at(0)->name+"::"+shvec.at(1)->name;
+    if (shvec.size() == 2)
+      return shvec.at(0)->name + "::" + shvec.at(1)->name;
 
-    q=shvec.at(0)->name;
+    q = shvec.at(0)->name;
 
-    for(size_t l=1;l<shvec.size();l++)
+    for (size_t l = 1; l < shvec.size(); l++)
     {
       q.append("::");
       q.append(shvec.at(l)->name);
     }
 
-   return q;   
+    return q;
   }
 };
 

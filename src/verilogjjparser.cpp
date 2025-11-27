@@ -121,7 +121,7 @@ void VerilogOutlineParser::Private::parseVerilogfile(const char *inputBuffer, bo
 #if 0
   for (auto token : tokens.getTokens())
   {
-    if (token->getType() != ExprLexer::WS)
+    if (token->getType() != SysVerilogLexer::WS)
       std::cout << " [" << token->getType() << token->getText() << " || " << token->getLine() << " || " << token->getTokenIndex() << "]\n";
   }
 #endif
@@ -173,9 +173,6 @@ void VerilogOutlineParser::parseInput(const QCString &fileName, const char *file
   s->current = std::make_shared<Entry>();
   initEntry(s->current.get());
   p->parseVerilogfile(fileBuf, false);
-
-  // std::cout << "-----------------...------------------";
-  // printEntries(s->current_root);
 
   insertPendingComments();
   Doxygen::macroDefinitions.emplace(std::make_pair(s->fileName.c_str(), std::move(s->defList)));
@@ -285,7 +282,7 @@ void VerilogOutlineParser::addVerilogType(const char *n, int startLine, int endL
   // s->current->argList.setTrailingReturnType(QCString("double"));
   // s->current->args += " int a ";
   s->current->type = qual;
-  s->current->type.append(" automatic");
+  //s->current->type.append(" automatic");
   s->current->fileName = p->yyFileName;
   s->current->spec = ts;
 
@@ -579,9 +576,6 @@ void VerilogOutlineParser::addComment(std::string &str, size_t line, bool brief)
 {
   QCString doc(str.data());
   handleCommentBlock(doc, line, brief);
-  SharedState *s = &p->shared;
-  printEntries(s->current_root);
-  std::cout << "--------------------------" << "\n";
 }
 
 std::shared_ptr<Entry> VerilogOutlineParser::getLastEntry()

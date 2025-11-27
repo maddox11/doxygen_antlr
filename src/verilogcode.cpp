@@ -429,13 +429,6 @@ void VerilogCodeParser::parseCode(OutputCodeList &od,
       p->foldStack.pop_back();
     }
   }
-
-  if (memberDef)
-  {
-    const ClassDef *dd = memberDef->getClassDef();
-    // if (dd)
-    //   printf("***parseCode() ");
-  }
 }
 
 void VerilogCodeParser::writeVerilogFont(const char *s, const char *text)
@@ -555,7 +548,7 @@ void VerilogCodeParser::writeWord(const QCString &c)
 /*! writes a code fragment `text' that may span multiple lines, inserting
  * line numbers for each line.
  */
-//                                  QCString & text,QCString & cl,bool undoc,bool comment,bool classLink
+//QCString & text,QCString & cl,bool undoc,bool comment,bool classLink
 void VerilogCodeParser::codifyLines(const char *text, const char *cll, bool undoc, bool comment, bool classLink)
 {
 
@@ -741,7 +734,7 @@ void VerilogCodeParser::codifyWord(const char *s, const QCString &clScope)
   QCString qcs = s;
   QCString tooltip = "";
 
-  const Definition *d = p->g_sourceFileDef->getSourceDefinition(p->g_yyLineNr);
+  //const Definition *d = p->g_sourceFileDef->getSourceDefinition(p->g_yyLineNr);
 
   // std::cout << "codify word:" << s << " -- " << clScope.data() << "\n";
 
@@ -956,23 +949,6 @@ void VerilogCodeParser::generateMemLink(QCString &clName, QCString &memberName)
   }
 }
 
-Define &VerilogCodeParser::findMacro(const std::string &f, const QCString &n)
-{
-  Define dd;
-  DefinesPerFileList defL = Doxygen::macroDefinitions;
-  if (auto search = Doxygen::macroDefinitions.find(f); search != Doxygen::macroDefinitions.end())
-  {
-    std::vector<Define> dl = search->second;
-
-    for (Define def : dl)
-    {
-      if (def.name == n)
-        return def;
-    }
-  }
-  return dd;
-}
-
 void VerilogCodeParser::codifyMacroString(std::string &s)
 {
   const MemberDef *md = 0;
@@ -1108,9 +1084,7 @@ const MemberDef *findMemberDef(ClassDef *cd, const QCString &key, MemberListType
   {
     return 0;
   }
-  // int l=ml->count();
-  //	fprintf(stderr,"\n loading entity %s %s: %d",qPrint(cd->symbolName()),qPrint(keyType),l);
-
+ 
   for (const auto &md : *ml)
   {
     QCString tkey = cd->symbolName() + "@" + md->name();

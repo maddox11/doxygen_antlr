@@ -8336,8 +8336,7 @@ static void addSourceReferences()
     //  std::cout<<" mem: "<<mn->memberName()<<"\n";
     for (const auto &md : *mn)
     {
-      bool bb = md->isLinkableInProject();
-      // printf("class member %s: def=%s body=%d link?=%d\n",
+     // printf("class member %s: def=%s body=%d link?=%d\n",
       //      qPrint(md->name()),
       //      md->getBodyDef()?qPrint(md->getBodyDef()->name()):"<none>",
       //      md->getStartBodyLine(),md->isLinkableInProject());

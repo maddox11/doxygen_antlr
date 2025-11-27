@@ -32,16 +32,16 @@ public:
 
   QCString &getFileName();
   void resetCodeParserState() {};
-  void insertPendingComments();
+  //void insertPendingComments();
   void writeVerilogKeyWord(const char *c);
   void writeVerilogFont(const char *s, const char *text);
 
   void codifyMacroString(std::string &s);
   const MemberDef *findMacroMember(const char *m);
   // const Definition* findMacroMember(int line);
-  Define &findMacro(const std::string &f, const QCString &n);
+ // Define &findMacro(const std::string &f, const QCString &n);
 
-  const QCString *findKeyWord(const char *);
+  //const QCString *findKeyWord(const char *);
   
   void endCodeLine();
 

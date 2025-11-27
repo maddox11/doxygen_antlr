@@ -192,6 +192,7 @@ MINUSGTGT: '->>';
 GTGTEQ: '>>=';
 GTGTGT: '>>>' ;
 GTGTGTEQ: '>>>=';
+
 // TOKEN #KeyWord:
 T_ONESTEP: '1step';
 T_ACCEPT_ON: 'accept_on';
@@ -533,7 +534,7 @@ Attr_spec#: SS ( "=" Constant_expression )?
    	    WS  :   [ \t]+ -> channel(2) ; // toss out whitespace
         Attribute_instance: (LP STAR Text?  STAR RP) ->channel(2); 
         Block_comment : ('/*' Text '*/' ) -> channel(2);
-        Out_line_comment: ('<<!' ~('\n' | '\r')* ('\n' | '\r' | '\r\n')? )->channel(2);
+        Out_line_comment: ('@@' ~('\n' | '\r')* ('\n' | '\r' | '\r\n')? )->channel(2);
         One_line_comment: ('//' ~('\n' | '\r')* ('\n' | '\r' | '\r\n')? )->channel(2);
         Simple_identifier : (Letter| '_'|'`') (Letter_or_digit | '_'| '$')*;      
         System_identifier :  (Letter_or_digit|'_'|'$')+ ;
